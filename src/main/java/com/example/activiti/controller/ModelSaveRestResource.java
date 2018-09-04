@@ -16,7 +16,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.activiti.bpmn.converter.BpmnXMLConverter;
+import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.constants.ModelDataJsonConstants;
+import org.activiti.editor.language.json.converter.BpmnJsonConverter;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Model;
@@ -37,6 +41,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Tijs Rademakers
  */
+
 @RestController
 @RequestMapping(value = "/service")
 public class ModelSaveRestResource implements ModelDataJsonConstants {
@@ -54,8 +59,8 @@ public class ModelSaveRestResource implements ModelDataJsonConstants {
   public void saveModel(@PathVariable String modelId,  @RequestParam("name") String name,
                         @RequestParam("json_xml") String json_xml, @RequestParam("svg_xml") String svg_xml,
                         @RequestParam("description") String description) {
-    try {
-      
+    try
+    {
       Model model = repositoryService.getModel(modelId);
       
       ObjectNode modelJson = (ObjectNode) objectMapper.readTree(model.getMetaInfo());
@@ -68,6 +73,17 @@ public class ModelSaveRestResource implements ModelDataJsonConstants {
       repositoryService.saveModel(model);
 
       repositoryService.addModelEditorSource(model.getId(), json_xml.getBytes("utf-8"));
+
+      //获取节点信息
+      byte[] arg0 = repositoryService.getModelEditorSource(model.getId());
+      JsonNode editorNode = new ObjectMapper().readTree(arg0);
+      BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
+      //将节点信息转换为xml
+      BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(editorNode);
+      BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
+      byte[] bpmnBytes = xmlConverter.convertToXML(bpmnModel);
+      //得到流程图的xml
+      String xml = new String(bpmnBytes);
 
       InputStream svgStream = new ByteArrayInputStream(svg_xml.getBytes("utf-8"));
       TranscoderInput input = new TranscoderInput(svgStream);
