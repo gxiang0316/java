@@ -1,9 +1,0 @@
-rootProject.name = 'financial'
-include 'util'
-include 'api'
-include 'manager'
-include 'seller'
-include 'entity'
-include 'quartz'
-include 'swagger'
-
