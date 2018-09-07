@@ -12,12 +12,11 @@
  */
 package com.example.activiti.controller;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-
+import com.example.activiti.parse.BpmnModelParse;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.activiti.bpmn.converter.BpmnXMLConverter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.activiti.bpmn.constants.BpmnXMLConstants;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
@@ -33,9 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 
 /**
@@ -44,7 +43,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestController
 @RequestMapping(value = "/service")
-public class ModelSaveRestResource implements ModelDataJsonConstants {
+public class ModelSaveRestResource implements ModelDataJsonConstants , BpmnXMLConstants
+{
   
   protected static final Logger LOGGER = LoggerFactory.getLogger(ModelSaveRestResource.class);
 
@@ -53,55 +53,64 @@ public class ModelSaveRestResource implements ModelDataJsonConstants {
   
   @Autowired
   private ObjectMapper objectMapper;
+
+  @Autowired
+  private BpmnModelParse parse;
+
   
   @RequestMapping(value="/model/{modelId}/save", method = RequestMethod.PUT)
   @ResponseStatus(value = HttpStatus.OK)
   public void saveModel(@PathVariable String modelId,  @RequestParam("name") String name,
                         @RequestParam("json_xml") String json_xml, @RequestParam("svg_xml") String svg_xml,
-                        @RequestParam("description") String description) {
+                        @RequestParam("description") String description)
+  {
     try
     {
       Model model = repositoryService.getModel(modelId);
-      
       ObjectNode modelJson = (ObjectNode) objectMapper.readTree(model.getMetaInfo());
-
       modelJson.put(MODEL_NAME, name);
       modelJson.put(MODEL_DESCRIPTION, description);
       model.setMetaInfo(modelJson.toString());
       model.setName(name);
-      
+      //保存模型信息
       repositoryService.saveModel(model);
-
       repositoryService.addModelEditorSource(model.getId(), json_xml.getBytes("utf-8"));
-
       //获取节点信息
       byte[] arg0 = repositoryService.getModelEditorSource(model.getId());
       JsonNode editorNode = new ObjectMapper().readTree(arg0);
       BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
-      //将节点信息转换为xml
+      //将节点信息转换为bpmnModel
       BpmnModel bpmnModel = jsonConverter.convertToBpmnModel(editorNode);
-      BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
-      byte[] bpmnBytes = xmlConverter.convertToXML(bpmnModel);
-      //得到流程图的xml
-      String xml = new String(bpmnBytes);
-
+      //解析bpmnModel,保存流程信息,节点信息，顺序流信息，节点属性信息
+      saveToDb(model,bpmnModel);
       InputStream svgStream = new ByteArrayInputStream(svg_xml.getBytes("utf-8"));
       TranscoderInput input = new TranscoderInput(svgStream);
-      
       PNGTranscoder transcoder = new PNGTranscoder();
       // Setup output
       ByteArrayOutputStream outStream = new ByteArrayOutputStream();
       TranscoderOutput output = new TranscoderOutput(outStream);
-      
       // Do the transformation
       transcoder.transcode(input, output);
       final byte[] result = outStream.toByteArray();
       repositoryService.addModelEditorSourceExtra(model.getId(), result);
       outStream.close();
-      
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       LOGGER.error("Error saving model", e);
       throw new ActivitiException("Error saving model", e);
     }
   }
+
+  /**
+   * 解析bpmnModel,保存流程信息,节点信息，顺序流信息，节点属性信息
+   * @param model
+   * @param bpmnModel
+   */
+  public void saveToDb(Model model,BpmnModel bpmnModel)
+  {
+    parse.converterToProcess(model,bpmnModel);
+    parse.converterToObject(bpmnModel);
+  }
+
 }

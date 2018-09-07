@@ -14,6 +14,8 @@ package com.example.activiti.controller;
 
 import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.engine.ActivitiException;
+import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.ProcessEngines;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Model;
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +37,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RequestMapping(value = "/service")
 public class ModelEditorJsonRestResource implements ModelDataJsonConstants {
   
-  protected static final Logger LOGGER = LoggerFactory.getLogger(ModelEditorJsonRestResource.class);
-  
+  private static final Logger LOGGER = LoggerFactory.getLogger(ModelEditorJsonRestResource.class);
+
   @Autowired
   private RepositoryService repositoryService;
   
@@ -44,16 +46,20 @@ public class ModelEditorJsonRestResource implements ModelDataJsonConstants {
   private ObjectMapper objectMapper;
   
   @RequestMapping(value="/model/{modelId}/json", method = RequestMethod.GET, produces = "application/json")
-  public ObjectNode getEditorJson(@PathVariable String modelId) {
+  public ObjectNode getEditorJson(@PathVariable String modelId)
+  {
     ObjectNode modelNode = null;
-    
     Model model = repositoryService.getModel(modelId);
-      
-    if (model != null) {
-      try {
-        if (StringUtils.isNotEmpty(model.getMetaInfo())) {
+    if (model != null)
+    {
+      try
+      {
+        if (StringUtils.isNotEmpty(model.getMetaInfo()))
+        {
           modelNode = (ObjectNode) objectMapper.readTree(model.getMetaInfo());
-        } else {
+        }
+        else
+        {
           modelNode = objectMapper.createObjectNode();
           modelNode.put(MODEL_NAME, model.getName());
         }
@@ -61,8 +67,9 @@ public class ModelEditorJsonRestResource implements ModelDataJsonConstants {
         ObjectNode editorJsonNode = (ObjectNode) objectMapper.readTree(
             new String(repositoryService.getModelEditorSource(model.getId()), "utf-8"));
         modelNode.put("model", editorJsonNode);
-        
-      } catch (Exception e) {
+      }
+      catch (Exception e)
+      {
         LOGGER.error("Error creating model JSON", e);
         throw new ActivitiException("Error creating model JSON", e);
       }

@@ -1,6 +1,6 @@
 package com.example.activiti.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
+
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.spring.SpringProcessEngineConfiguration;
 import org.activiti.spring.boot.AbstractProcessEngineAutoConfiguration;
@@ -12,26 +12,30 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-
-@Configuration
-public class ActitytiDataSourceConfig extends AbstractProcessEngineAutoConfiguration {
-
-
-
-
+/**
+ * 数据库配置
+ * Author:guixiang
+ * Date:2018-09-05
+ */
+/*@Configuration
+public class ActitytiDataSourceConfig extends AbstractProcessEngineAutoConfiguration
+{
     @Bean(name = "activitiDataSource")
     @ConfigurationProperties(prefix = "spring.datasource.activiti")
-    public DataSource activitiDataSource() {
+    public DataSource activitiDataSource()
+    {
         return new DruidDataSource();
     }
 
     @Bean
-    public PlatformTransactionManager transactionManager() {
+    public PlatformTransactionManager transactionManager()
+    {
         return new DataSourceTransactionManager(activitiDataSource());
     }
 
     @Bean
-    public SpringProcessEngineConfiguration springProcessEngineConfiguration() {
+    public SpringProcessEngineConfiguration springProcessEngineConfiguration()
+    {
         SpringProcessEngineConfiguration configuration = new SpringProcessEngineConfiguration();
         configuration.setDataSource(activitiDataSource());
         configuration.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
@@ -40,4 +44,4 @@ public class ActitytiDataSourceConfig extends AbstractProcessEngineAutoConfigura
         return configuration;
     }
 
-}
+}*/
