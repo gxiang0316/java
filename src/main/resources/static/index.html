@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form id = "uploadForm" method="post" action = "/model/uploadFile" enctype="multipart/form-data">
+<div>
+    <p>
+        <input id = "uploadfile" name = "uploadfile" type = "file" />
+    </p>
+</div>
+<div>
+    <p>
+        <button id = "btn-import" type = "button" onclick="importFlow();">导入模型</button>
+    </p>
+
+</div>
+</form>
+<form id = "createForm" method="get" action = "/model/create" enctype="multipart/form-data">
+<div>
+    <p>
+        <button id = "btn-create" type = "button" onclick="createFlow();">新建模型</button>
+    </p>
+</div>
+</form>
+<form id = "editForm" method="get" action = "/model/edit" enctype="multipart/form-data">
+<div>
+    <p>
+        <button id = "btn-edit" type = "button" onclick="editFlow();">编辑模型</button>
+    </p>
+</div>
+</form>
+<form id = "exportForm" method="get" action = "/model/export" enctype="multipart/form-data">
+<div>
+    <p>
+        <button id = "btn-export" type = "button" onclick="exportFlow();">导出模型</button>
+    </p>
+</div>
+</form>
+<form id = "deployForm" method="get" action = "/model/deploy/37507">
+    <div>
+        <p>
+            <button id = "btn-deploy" type = "button" onclick="deploy();">部署模型</button>
+        </p>
+    </div>
+</form>
+</body>
+<script>
+    function importFlow()
+    {
+        if(document.getElementById("uploadfile").value == "")
+        {
+            alert("请选择要上传的文件");
+            return;
+        }
+        else
+        {
+            document.getElementById("uploadForm").submit();
+        }
+    }
+
+    function createFlow()
+    {
+        document.getElementById("createForm").submit();
+    }
+
+    function editFlow()
+    {
+        document.getElementById("editForm").submit();
+    }
+
+    function exportFlow()
+    {
+        document.getElementById("exportForm").submit();
+    }
+
+    function deploy()
+    {
+        document.getElementById("deployForm").submit();
+    }
+</script>
+</html>
