@@ -1,0 +1,2 @@
+设计器上层按钮：src\main\resources\public\editor-app\configuration\toolbar.js
+，其中title的值取src\main\resources\public\editor-app\i18n\en.json
